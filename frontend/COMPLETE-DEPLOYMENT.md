@@ -3,6 +3,7 @@
 ## Step-by-Step Instructions for mb.egamei.com
 
 ### Prerequisites
+
 - ✅ Fresh Ubuntu/Debian server
 - ✅ Domain `mb.egamei.com` pointing to your server IP
 - ✅ SSH access to your server
@@ -12,12 +13,14 @@
 ## 🎯 Option 1: Automatic Deployment (Recommended)
 
 ### Step 1: Upload the script to your server
+
 ```bash
 # Upload complete-deploy.sh to your server using SCP or Git
 scp complete-deploy.sh user@your-server:/tmp/
 ```
 
 ### Step 2: Run the complete deployment
+
 ```bash
 # SSH into your server
 ssh user@your-server
@@ -34,6 +37,7 @@ sudo /tmp/complete-deploy.sh
 ## 🔧 Option 2: Manual Step-by-Step
 
 ### Step 1: Update system and install prerequisites
+
 ```bash
 # Update system
 sudo apt update && sudo apt upgrade -y
@@ -43,6 +47,7 @@ sudo apt install -y nginx nodejs npm curl git
 ```
 
 ### Step 2: Install Node.js 20 (recommended)
+
 ```bash
 # Install Node.js 20
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
@@ -54,6 +59,7 @@ npm --version
 ```
 
 ### Step 3: Clone your repository
+
 ```bash
 # Navigate to web directory
 cd /var/www
@@ -66,6 +72,7 @@ cd MediBridge/frontend
 ```
 
 ### Step 4: Install dependencies and build
+
 ```bash
 # Install dependencies
 sudo npm install
@@ -78,6 +85,7 @@ ls -la dist/
 ```
 
 ### Step 5: Deploy files
+
 ```bash
 # Create deployment directory
 sudo mkdir -p /var/www/medibridge/frontend
@@ -94,13 +102,14 @@ ls -la /var/www/medibridge/frontend/
 ```
 
 ### Step 6: Configure Nginx
+
 ```bash
 # Create nginx configuration
 sudo tee /etc/nginx/sites-available/medibridge << 'EOF'
 server {
     listen 80;
     listen [::]:80;
-    
+
     server_name mb.egamei.com www.mb.egamei.com;
     root /var/www/medibridge/frontend;
     index index.html;
@@ -142,6 +151,7 @@ EOF
 ```
 
 ### Step 7: Enable site and restart Nginx
+
 ```bash
 # Enable the site
 sudo ln -sf /etc/nginx/sites-available/medibridge /etc/nginx/sites-enabled/
@@ -160,6 +170,7 @@ sudo systemctl enable nginx
 ```
 
 ### Step 8: Configure firewall (if needed)
+
 ```bash
 # Check firewall status
 sudo ufw status
@@ -177,6 +188,7 @@ sudo ufw allow 443
 ## ✅ Verification Steps
 
 ### Test your deployment
+
 ```bash
 # Test locally on server
 curl -I http://localhost
@@ -191,6 +203,7 @@ curl -I http://mb.egamei.com/auth/callback
 ```
 
 ### Check logs if there are issues
+
 ```bash
 # Check nginx status
 sudo systemctl status nginx
@@ -252,27 +265,32 @@ sudo systemctl reload nginx
 ### Common Issues:
 
 **1. 404 errors on routes:**
+
 - Check nginx config has `try_files $uri $uri/ /index.html;`
 
 **2. Permission denied:**
+
 ```bash
 sudo chown -R www-data:www-data /var/www/medibridge/frontend
 sudo chmod -R 755 /var/www/medibridge/frontend
 ```
 
 **3. Nginx won't start:**
+
 ```bash
 sudo nginx -t
 sudo systemctl status nginx
 ```
 
 **4. Files not found:**
+
 ```bash
 ls -la /var/www/medibridge/frontend/
 # Should contain index.html and assets folder
 ```
 
 ### Useful Commands:
+
 ```bash
 # Restart everything
 sudo systemctl restart nginx
@@ -297,6 +315,6 @@ After completing these steps, your MediBridge frontend will be:
 ✅ **Auth callback working**: http://mb.egamei.com/auth/callback  
 ✅ **All React routes working**: No more 404 errors  
 ✅ **Optimized**: Gzip compression and caching  
-✅ **Secure**: Basic security headers  
+✅ **Secure**: Basic security headers
 
 🔒 **With SSL**: https://mb.egamei.com (after Step 9)

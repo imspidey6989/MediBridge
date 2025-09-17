@@ -12,7 +12,7 @@ server {
     listen 80;
     listen [::]:80;
     
-    server_name _;
+    server_name mb.egamei.com www.mb.egamei.com;
     root /var/www/medibridge/frontend;
     index index.html;
 
@@ -36,6 +36,11 @@ server {
         add_header Cache-Control "public, immutable";
         try_files $uri /index.html;
     }
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
 }
 EOF
 
