@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  medibridge-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: medibridge-frontend
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    # Uncomment if you need to mount volumes for SSL certificates
+    # volumes:
+    #   - /path/to/ssl:/etc/nginx/ssl:ro
+    networks:
+      - medibridge-network
+
+networks:
+  medibridge-network:
+    driver: bridge
