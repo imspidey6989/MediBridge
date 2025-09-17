@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Logo from "@/components/Logo";
 import { FolderOpen, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -111,70 +112,62 @@ const AuthCallback = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-secondary/30 via-background to-secondary/20 flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-secondary/30 via-background to-secondary/20 flex items-center justify-center p-4 sm:p-6">
+      <div className="w-full max-w-sm sm:max-w-md space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="text-center space-y-4">
-          <Link to="/" className="inline-flex items-center space-x-3 group">
-            <div className="p-3 bg-[var(--folder-gradient)] rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
-              <FolderOpen className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-govt-blue">
-                MediBridge
-              </div>
-              <div className="text-sm text-muted-foreground">
-                Dual coding for Digital India
-              </div>
-            </div>
-          </Link>
+        <div className="text-center space-y-3 sm:space-y-4">
+          <div className="flex justify-center">
+            <Logo size="lg" showText={true} to="/" />
+          </div>
         </div>
 
         {/* Status Card */}
         <Card className="bg-card/50 backdrop-blur-sm border-border/50 shadow-xl">
-          <CardHeader className="text-center">
-            <CardTitle className="flex items-center justify-center space-x-2">
+          <CardHeader className="text-center px-4 sm:px-6">
+            <CardTitle className="flex items-center justify-center space-x-2 text-base sm:text-lg">
               {status === "loading" && (
                 <>
-                  <Loader2 className="w-6 h-6 animate-spin text-govt-blue" />
+                  <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin text-govt-blue" />
                   <span>Authenticating...</span>
                 </>
               )}
               {status === "success" && (
                 <>
-                  <CheckCircle className="w-6 h-6 text-govt-green" />
+                  <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-govt-green" />
                   <span className="text-govt-green">Success!</span>
                 </>
               )}
               {status === "error" && (
                 <>
-                  <XCircle className="w-6 h-6 text-destructive" />
+                  <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-destructive" />
                   <span className="text-destructive">Error</span>
                 </>
               )}
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <p className="text-muted-foreground">{message}</p>
+          <CardContent className="text-center space-y-3 sm:space-y-4 px-4 sm:px-6 pb-6">
+            <p className="text-sm sm:text-base text-muted-foreground">
+              {message}
+            </p>
 
             {status === "success" && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Redirecting you to your dashboard...
               </p>
             )}
 
             {status === "error" && (
-              <div className="space-y-3">
+              <div className="space-y-3 sm:space-y-4">
                 <Link
                   to="/login"
-                  className="inline-block bg-govt-blue text-white px-6 py-2 rounded hover:bg-govt-blue/90 transition-colors"
+                  className="inline-block bg-govt-blue text-white px-4 sm:px-6 py-2 sm:py-2 rounded text-sm sm:text-base hover:bg-govt-blue/90 transition-colors"
                 >
                   Try Again
                 </Link>
                 <br />
                 <Link
                   to="/"
-                  className="text-sm text-muted-foreground hover:text-govt-blue transition-colors"
+                  className="text-xs sm:text-sm text-muted-foreground hover:text-govt-blue transition-colors"
                 >
                   Back to Home
                 </Link>

@@ -7,6 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import Logo from "@/components/Logo";
 import { FolderOpen, Shield, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -87,16 +88,9 @@ const Login = () => {
       <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg space-y-6 sm:space-y-8 animate-in slide-in-from-bottom-8 duration-700 delay-200">
         {/* Header */}
         <div className="text-center space-y-3 sm:space-y-4 animate-in slide-in-from-top-4 duration-600 delay-300">
-          <Link to="/" className="inline-block group">
-            <div className="animate-in slide-in-from-right-4 duration-600 delay-500">
-              <div className="text-xl sm:text-2xl font-bold text-govt-blue group-hover:text-govt-blue/90 transition-colors duration-200">
-                MediBridge
-              </div>
-              <div className="text-xs sm:text-sm text-muted-foreground group-hover:text-muted-foreground/80 transition-colors duration-200">
-                Dual coding for Digital India
-              </div>
-            </div>
-          </Link>
+          <div className="flex justify-center animate-in slide-in-from-right-4 duration-600 delay-500">
+            <Logo size="lg" showText={true} to="/" />
+          </div>
         </div>
 
         {/* Main Card */}

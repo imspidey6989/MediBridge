@@ -12,6 +12,19 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import Logo from "@/components/Logo";
+import { toast } from "sonner";
+import {
   Heart,
   FileText,
   CheckCircle,
@@ -23,6 +36,8 @@ import {
   Users,
   Download,
   LogOut,
+  Edit,
+  Trash2,
 } from "lucide-react";
 
 interface DashboardStats {
@@ -37,14 +52,25 @@ interface HealthRecord {
   id: number;
   title: string;
   record_type: string;
-  created_at: string;
-  verification_status: string;
+  description: string;
+  icd11_code?: string;
+  icd11_title?: string;
+  diagnosis?: string;
+  symptoms?: string[];
+  namaste_name?: string;
+  doctor_name?: string;
+  hospital_name?: string;
+  visit_date?: string;
   severity: string;
+  verification_status: string;
+  created_at: string;
+  updated_at: string;
 }
 
 const Dashboard = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentRecords, setRecentRecords] = useState<HealthRecord[]>([]);
+  const [allRecords, setAllRecords] = useState<HealthRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [userEmail, setUserEmail] = useState<string>("");
@@ -63,25 +89,107 @@ const Dashboard = () => {
         console.error("Error parsing user data:", error);
       }
     }
+
+    // Listen for storage changes (when health records are updated)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "health_records") {
+        fetchDashboardData();
+      }
+    };
+
+    // Listen for focus events to refresh data when user returns to dashboard
+    const handleFocus = () => {
+      fetchDashboardData();
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, []);
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem("auth_token");
-      const response = await fetch("/api/dashboard/overview", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      // Fetch health records from localStorage instead of API
+      const storedRecords = localStorage.getItem("health_records");
+      let healthRecords: HealthRecord[] = [];
 
-      if (response.ok) {
-        const data = await response.json();
-        setStats(data.data.overview);
-        setRecentRecords(data.data.recentRecords);
+      if (storedRecords) {
+        try {
+          healthRecords = JSON.parse(storedRecords);
+        } catch (error) {
+          console.error("Error parsing stored health records:", error);
+          healthRecords = [];
+        }
       }
+
+      // Calculate dynamic stats from health records
+      const totalRecords = healthRecords.length;
+      const recentRecords = healthRecords.filter((record) => {
+        const recordDate = new Date(record.created_at);
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        return recordDate >= thirtyDaysAgo;
+      }).length;
+
+      const verifiedRecords = healthRecords.filter(
+        (record) => record.verification_status === "verified"
+      ).length;
+
+      // Count active conditions (unique diagnoses/conditions)
+      const activeConditions = new Set(
+        healthRecords
+          .filter(
+            (record) =>
+              record.record_type === "consultation" ||
+              record.record_type === "diagnosis"
+          )
+          .map((record) => record.icd11_code || record.title)
+          .filter(Boolean)
+      ).size;
+
+      // Count medications (prescription records)
+      const activeMedications = healthRecords.filter(
+        (record) =>
+          record.record_type === "prescription" ||
+          record.record_type === "medication"
+      ).length;
+
+      const calculatedStats: DashboardStats = {
+        totalRecords,
+        recentRecords,
+        verifiedRecords,
+        activeConditions,
+        activeMedications,
+      };
+
+      setStats(calculatedStats);
+
+      // Set all records (sorted by date, most recent first)
+      const sortedAllRecords = healthRecords.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setAllRecords(sortedAllRecords);
+
+      // Set recent records (last 5 records for overview)
+      const recentRecordsForOverview = sortedAllRecords.slice(0, 5);
+      setRecentRecords(recentRecordsForOverview);
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error);
+      // Set default stats if there's an error
+      setStats({
+        totalRecords: 0,
+        recentRecords: 0,
+        verifiedRecords: 0,
+        activeConditions: 0,
+        activeMedications: 0,
+      });
+      setRecentRecords([]);
+      setAllRecords([]);
     } finally {
       setLoading(false);
     }
@@ -118,6 +226,35 @@ const Dashboard = () => {
     }
   };
 
+  const handleDeleteRecord = async (recordId: number) => {
+    try {
+      // Remove record from localStorage
+      const storedRecords = localStorage.getItem("health_records");
+      if (storedRecords) {
+        const healthRecords = JSON.parse(storedRecords);
+        const updatedRecords = healthRecords.filter(
+          (record: HealthRecord) => record.id !== recordId
+        );
+        localStorage.setItem("health_records", JSON.stringify(updatedRecords));
+
+        // Refresh dashboard data
+        fetchDashboardData();
+
+        // Show success message
+        toast.success("Health record deleted successfully");
+      }
+    } catch (error) {
+      console.error("Failed to delete record:", error);
+      toast.error("Failed to delete health record");
+    }
+  };
+
+  const handleEditRecord = (recordId: number) => {
+    // Navigate to health records page with edit mode
+    // You can pass the record ID as a URL parameter or state
+    navigate(`/health-records?edit=${recordId}`);
+  };
+
   const handleLogout = () => {
     // Clear authentication data
     localStorage.removeItem("auth_token");
@@ -139,28 +276,34 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 max-w-7xl">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Health Dashboard</h1>
-          <p className="text-gray-600 mt-2">
-            Comprehensive view of your health records and data
-          </p>
-          {userEmail && (
-            <p className="text-sm text-gray-500 mt-1">
-              Welcome back, {userEmail}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+          <Logo size="md" showText={true} to="/" />
+          <div className="space-y-1 sm:space-y-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              Health Dashboard
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600">
+              Comprehensive view of your health records and data
             </p>
-          )}
+            {userEmail && (
+              <p className="text-xs sm:text-sm text-gray-500">
+                Welcome back, {userEmail}
+              </p>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Button className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+          <Button className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm">
             <Download className="h-4 w-4" />
-            Export Data
+            <span className="hidden sm:inline">Export Data</span>
+            <span className="sm:hidden">Export</span>
           </Button>
           <Button
             variant="outline"
-            className="flex items-center gap-2 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-sm"
             onClick={handleLogout}
           >
             <LogOut className="h-4 w-4" />
@@ -170,7 +313,7 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Records</CardTitle>
@@ -278,7 +421,7 @@ const Dashboard = () => {
                   {recentRecords.map((record) => (
                     <div
                       key={record.id}
-                      className="flex items-center justify-between p-3 border rounded-lg"
+                      className="flex items-center justify-between p-3 border rounded-lg hover:shadow-md transition-shadow"
                     >
                       <div className="flex-1">
                         <h4 className="font-medium">{record.title}</h4>
@@ -289,15 +432,63 @@ const Dashboard = () => {
                           {new Date(record.created_at).toLocaleDateString()}
                         </p>
                       </div>
-                      <div className="flex flex-col gap-1">
-                        <Badge className={getSeverityColor(record.severity)}>
-                          {record.severity}
-                        </Badge>
-                        <Badge
-                          className={getStatusColor(record.verification_status)}
-                        >
-                          {record.verification_status}
-                        </Badge>
+                      <div className="flex items-center gap-3">
+                        <div className="flex flex-col gap-1">
+                          <Badge className={getSeverityColor(record.severity)}>
+                            {record.severity}
+                          </Badge>
+                          <Badge
+                            className={getStatusColor(
+                              record.verification_status
+                            )}
+                          >
+                            {record.verification_status}
+                          </Badge>
+                        </div>
+
+                        {/* Compact Action Buttons for Overview */}
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditRecord(record.id)}
+                            className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Delete Health Record
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete "
+                                  {record.title}"? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteRecord(record.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Delete Record
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -320,40 +511,54 @@ const Dashboard = () => {
                         onClick={async () => {
                           // Quick create a sample record
                           const sampleRecord = {
-                            recordType: "consultation",
-                            title: "Sample Health Check-up",
+                            id: Date.now(),
+                            title: "John Doe",
+                            record_type: "consultation",
                             description:
-                              "Sample routine health examination for testing purposes.",
-                            diagnosis: "Sample diagnosis - Normal examination",
-                            symptoms: ["None"],
-                            doctorName: "Dr. Sample Provider",
-                            hospitalName: "MediBridge Sample Clinic",
-                            visitDate: new Date().toISOString().split("T")[0],
+                              "This is a sample health record for demonstration purposes.",
+                            icd11_code: "8A00",
+                            icd11_title: "Primary headache disorders",
+                            diagnosis: "Tension-type headache",
+                            symptoms: ["headache", "stress"],
+                            namaste_name: "स्वास्थ्य रिकॉर्ड (Health Record)",
+                            doctor_name: "Dr. Sample Physician",
+                            hospital_name: "Sample Medical Center",
+                            visit_date: new Date().toISOString().split("T")[0],
                             severity: "mild",
+                            verification_status: "pending",
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
                           };
 
                           try {
-                            const token = localStorage.getItem("auth_token");
-                            const response = await fetch(
-                              "/api/health-records",
-                              {
-                                method: "POST",
-                                headers: {
-                                  Authorization: `Bearer ${token}`,
-                                  "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify(sampleRecord),
-                              }
+                            // Get existing records from localStorage
+                            const existingRecords =
+                              localStorage.getItem("health_records");
+                            const records = existingRecords
+                              ? JSON.parse(existingRecords)
+                              : [];
+
+                            // Add the new sample record
+                            const updatedRecords = [...records, sampleRecord];
+
+                            // Save back to localStorage
+                            localStorage.setItem(
+                              "health_records",
+                              JSON.stringify(updatedRecords)
                             );
 
-                            if (response.ok) {
-                              fetchDashboardData(); // Refresh dashboard data
-                            }
+                            // Refresh dashboard data
+                            fetchDashboardData();
+
+                            toast.success(
+                              "Sample health record added successfully"
+                            );
                           } catch (error) {
                             console.error(
                               "Failed to create sample record:",
                               error
                             );
+                            toast.error("Failed to create sample record");
                           }
                         }}
                         className="flex items-center gap-2"
@@ -427,24 +632,189 @@ const Dashboard = () => {
         <TabsContent value="records">
           <Card>
             <CardHeader>
-              <CardTitle>All Health Records</CardTitle>
-              <CardDescription>
-                Manage and view all your health records
-              </CardDescription>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                <div>
+                  <CardTitle>All Health Records</CardTitle>
+                  <CardDescription>
+                    View and manage all your health records
+                  </CardDescription>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate("/health-records")}
+                    className="flex items-center gap-2"
+                    size="sm"
+                  >
+                    <FileText className="h-4 w-4" />
+                    View All
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">
-                  Health records management interface coming soon...
-                </p>
-                <Button
-                  className="mt-4"
-                  onClick={() => navigate("/health-records")}
-                >
-                  Add New Record
-                </Button>
-              </div>
+              {allRecords.length > 0 ? (
+                <div className="space-y-4">
+                  {allRecords.slice(0, 10).map((record) => (
+                    <div
+                      key={record.id}
+                      className="flex flex-col p-4 border rounded-lg hover:shadow-md transition-shadow bg-white"
+                    >
+                      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+                        <div className="flex-1 space-y-2 sm:space-y-1">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <h4 className="font-medium text-lg">
+                              {record.title}
+                            </h4>
+                            <div className="flex gap-2">
+                              <Badge
+                                className={getSeverityColor(record.severity)}
+                              >
+                                {record.severity}
+                              </Badge>
+                              <Badge
+                                className={getStatusColor(
+                                  record.verification_status
+                                )}
+                              >
+                                {record.verification_status}
+                              </Badge>
+                            </div>
+                          </div>
+
+                          <p className="text-sm text-gray-600 capitalize">
+                            Type: {record.record_type.replace("_", " ")}
+                          </p>
+
+                          {record.description && (
+                            <p className="text-sm text-gray-700 line-clamp-2">
+                              {record.description}
+                            </p>
+                          )}
+
+                          {record.icd11_code && (
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <FileText className="h-3 w-3" />
+                              <span className="font-medium">
+                                {record.icd11_code}
+                              </span>
+                              {record.icd11_title && (
+                                <span>- {record.icd11_title}</span>
+                              )}
+                            </div>
+                          )}
+
+                          {record.doctor_name && (
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Users className="h-3 w-3" />
+                              <span>Dr. {record.doctor_name}</span>
+                              {record.hospital_name && (
+                                <span>at {record.hospital_name}</span>
+                              )}
+                            </div>
+                          )}
+
+                          <div className="flex items-center gap-4 text-xs text-gray-500">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              Created:{" "}
+                              {new Date(record.created_at).toLocaleDateString()}
+                            </div>
+                            {record.visit_date && (
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                Visit:{" "}
+                                {new Date(
+                                  record.visit_date
+                                ).toLocaleDateString()}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-2 mt-3 sm:mt-0 sm:ml-4">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditRecord(record.id)}
+                            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          >
+                            <Edit className="h-3 w-3" />
+                            <span className="hidden sm:inline">Edit</span>
+                          </Button>
+
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                                <span className="hidden sm:inline">Delete</span>
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Delete Health Record
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete "
+                                  {record.title}"? This action cannot be undone
+                                  and will permanently remove this health record
+                                  from your account.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteRecord(record.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Delete Record
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {allRecords.length > 10 && (
+                    <div className="text-center py-2 text-sm text-gray-500 border-t">
+                      Showing 10 of {allRecords.length} records
+                    </div>
+                  )}
+
+                  <div className="flex justify-center pt-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate("/health-records")}
+                      className="flex items-center gap-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                      View All Records
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600 mb-4">
+                    No health records yet. Start by creating your first record.
+                  </p>
+                  <Button
+                    onClick={() => navigate("/health-records")}
+                    className="flex items-center gap-2"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Add Your First Record
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
