@@ -94,6 +94,27 @@ server {
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline' 'unsafe-eval'" always;
+
+    # Prevent access to hidden files
+    location ~ /\. {
+        deny all;
+    }
+
+    # Handle favicon
+    location = /favicon.ico {
+        try_files \$uri /favicon.ico /public/favicon.ico;
+        log_not_found off;
+        access_log off;
+    }
+
+    # Handle robots.txt
+    location = /robots.txt {
+        try_files \$uri /robots.txt /public/robots.txt;
+        log_not_found off;
+        access_log off;
+    }
 }
 EOF
 
