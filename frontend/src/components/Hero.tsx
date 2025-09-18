@@ -36,9 +36,8 @@ const Hero = () => {
               </h1>
 
               <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-xl">
-                Seamlessy INtegrating traditional Indian Medicine and global
-                standards for comprehensive patient record and national health
-                insights.
+                Connecting AYUSH systems with ICD-11 through NAMASTE for
+                comprehensive, globally recognized patient care.
               </p>
             </div>
 
