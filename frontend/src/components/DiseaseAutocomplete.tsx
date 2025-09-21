@@ -31,6 +31,12 @@ const customDiseases = [
     icdCode: "5A01.Z",
     namaste: "Ghengh",
     symptoms: ["neck swelling", "difficulty swallowing", "cough", "hoarseness"],
+  },{
+    id: 4,
+    name: "",
+    icdCode: "5A01.Z",
+    namaste: "Ghengh",
+    symptoms: ["neck swelling", "difficulty swallowing", "cough", "hoarseness"],
   },
 ];
 

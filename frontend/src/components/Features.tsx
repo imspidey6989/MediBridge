@@ -13,13 +13,6 @@ import {
 const Features = () => {
   const features = [
     {
-      icon: Upload,
-      title: "Upload Documents",
-      description:
-        "Easily upload your health reports, lab results, prescriptions, and certificates from any device.",
-      color: "text-govt-blue",
-    },
-    {
       icon: FolderOpen,
       title: "Organize & Store",
       description:
@@ -42,7 +35,7 @@ const Features = () => {
     },
     {
       icon: Download,
-      title: "Download Anytime",
+      title: "Quick Access",
       description:
         "Access and download your verified documents 24/7 from anywhere with internet connectivity.",
       color: "text-govt-blue",
@@ -55,15 +48,8 @@ const Features = () => {
       color: "text-govt-green",
     },
     {
-      icon: Smartphone,
-      title: "Mobile Access",
-      description:
-        "Access your health vault on mobile, tablet, or computer with our responsive web application.",
-      color: "text-govt-blue",
-    },
-    {
       icon: FileText,
-      title: "ICD-11 Classification",
+      title: "ICD-11 (TM2) Classification",
       description:
         "Documents are automatically classified using WHO's latest International Classification of Diseases.",
       color: "text-govt-green",

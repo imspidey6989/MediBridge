@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import * as XLSX from "xlsx";
 import {
   Card,
   CardContent,
@@ -267,6 +268,75 @@ const Dashboard = () => {
     navigate("/");
   };
 
+  const handleExportToExcel = () => {
+    try {
+      if (allRecords.length === 0) {
+        toast.error("No records to export");
+        return;
+      }
+
+      // Prepare data for Excel export
+      const exportData = allRecords.map((record) => ({
+        "Patient Name": record.title,
+        "Record Type": record.record_type.replace("_", " ").toUpperCase(),
+        Description: record.description,
+        "ICD-11 Code": record.icd11_code || "",
+        "ICD-11 Title": record.icd11_title || "",
+        Diagnosis: record.diagnosis || "",
+        Symptoms: record.symptoms ? record.symptoms.join(", ") : "",
+        "Hindi Name": record.namaste_name || "",
+        "Doctor Name": record.doctor_name || "",
+        "Hospital Name": record.hospital_name || "",
+        "Visit Date": record.visit_date || "",
+        Severity: record.severity.toUpperCase(),
+        "Verification Status": record.verification_status.toUpperCase(),
+        "Created Date": new Date(record.created_at).toLocaleDateString(),
+        "Last Updated": new Date(record.updated_at).toLocaleDateString(),
+      }));
+
+      // Create workbook and worksheet
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+      // Set column widths for better readability
+      const columnWidths = [
+        { wch: 20 }, // Patient Name
+        { wch: 15 }, // Record Type
+        { wch: 30 }, // Description
+        { wch: 12 }, // ICD-11 Code
+        { wch: 25 }, // ICD-11 Title
+        { wch: 25 }, // Diagnosis
+        { wch: 30 }, // Symptoms
+        { wch: 20 }, // Hindi Name
+        { wch: 20 }, // Doctor Name
+        { wch: 25 }, // Hospital Name
+        { wch: 12 }, // Visit Date
+        { wch: 10 }, // Severity
+        { wch: 15 }, // Verification Status
+        { wch: 12 }, // Created Date
+        { wch: 12 }, // Last Updated
+      ];
+      worksheet["!cols"] = columnWidths;
+
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Health Records");
+
+      // Generate filename with current date
+      const currentDate = new Date().toISOString().split("T")[0];
+      const filename = `MediBridge_Health_Records_${currentDate}.xlsx`;
+
+      // Write and download the file
+      XLSX.writeFile(workbook, filename);
+
+      toast.success(
+        `Successfully exported ${allRecords.length} records to ${filename}`
+      );
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Failed to export records. Please try again.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -296,7 +366,10 @@ const Dashboard = () => {
           </div>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-          <Button className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm">
+          <Button
+            className="flex items-center justify-center gap-2 w-full sm:w-auto text-sm"
+            onClick={handleExportToExcel}
+          >
             <Download className="h-4 w-4" />
             <span className="hidden sm:inline">Export Data</span>
             <span className="sm:hidden">Export</span>
