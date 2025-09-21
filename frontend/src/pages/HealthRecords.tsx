@@ -620,29 +620,34 @@ const HealthRecords = () => {
           </Button>
 
           <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4 sm:mx-auto">
               <DialogHeader>
-                <DialogTitle>
+                <DialogTitle className="text-lg sm:text-xl">
                   {editingRecordId
                     ? "Edit Health Record"
                     : "Create New Health Record"}
                 </DialogTitle>
-                <DialogDescription>
+                <DialogDescription className="text-sm sm:text-base">
                   Add a new health record to your medical history
                 </DialogDescription>
               </DialogHeader>
 
-              <form onSubmit={handleCreateRecord} className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+              <form
+                onSubmit={handleCreateRecord}
+                className="space-y-4 sm:space-y-6"
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="recordType">Record Type</Label>
+                    <Label htmlFor="recordType" className="text-sm font-medium">
+                      Record Type
+                    </Label>
                     <Select
                       value={formData.recordType}
                       onValueChange={(value) =>
                         setFormData({ ...formData, recordType: value })
                       }
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="h-10 sm:h-11">
                         <SelectValue placeholder="Select record type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -658,14 +663,16 @@ const HealthRecords = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="severity">Severity</Label>
+                    <Label htmlFor="severity" className="text-sm font-medium">
+                      Severity
+                    </Label>
                     <Select
                       value={formData.severity}
                       onValueChange={(value) =>
                         setFormData({ ...formData, severity: value })
                       }
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="h-10 sm:h-11">
                         <SelectValue placeholder="Select severity" />
                       </SelectTrigger>
                       <SelectContent>
@@ -678,7 +685,9 @@ const HealthRecords = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="title">Patient's Name</Label>
+                  <Label htmlFor="title" className="text-sm font-medium">
+                    Patient's Name
+                  </Label>
                   <Input
                     id="title"
                     value={formData.title}
@@ -686,6 +695,7 @@ const HealthRecords = () => {
                       setFormData({ ...formData, title: e.target.value })
                     }
                     placeholder="Enter patient's name"
+                    className="h-10 sm:h-11"
                     required
                   />
                 </div>
@@ -711,7 +721,12 @@ const HealthRecords = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="namasteName">Namaste Name</Label>
+                    <Label
+                      htmlFor="namasteName"
+                      className="text-sm font-medium"
+                    >
+                      Namaste Name
+                    </Label>
                     <Input
                       id="namasteName"
                       value={formData.namasteName}
@@ -722,11 +737,17 @@ const HealthRecords = () => {
                         })
                       }
                       placeholder="Namaste name (e.g., chaechak, Madhumeha)"
+                      className="h-10 sm:h-11"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="icd11Code">ICD-11 Code</Label>
+                      <Label
+                        htmlFor="icd11Code"
+                        className="text-sm font-medium"
+                      >
+                        ICD-11 Code
+                      </Label>
                       <Input
                         id="icd11Code"
                         value={formData.icd11Code}
@@ -737,10 +758,16 @@ const HealthRecords = () => {
                           })
                         }
                         placeholder="e.g., BA00"
+                        className="h-10 sm:h-11"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="icd11Title">ICD-11 Title</Label>
+                      <Label
+                        htmlFor="icd11Title"
+                        className="text-sm font-medium"
+                      >
+                        ICD-11 Title
+                      </Label>
                       <Input
                         id="icd11Title"
                         value={formData.icd11Title}
@@ -751,13 +778,16 @@ const HealthRecords = () => {
                           })
                         }
                         placeholder="ICD-11 condition title"
+                        className="h-10 sm:h-11"
                       />
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="diagnosis">Diagnosis</Label>
+                  <Label htmlFor="diagnosis" className="text-sm font-medium">
+                    Diagnosis
+                  </Label>
                   <Textarea
                     id="diagnosis"
                     value={formData.diagnosis}
@@ -766,11 +796,14 @@ const HealthRecords = () => {
                     }
                     placeholder="Medical diagnosis"
                     rows={2}
+                    className="min-h-[60px] sm:min-h-[80px] resize-none"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="symptoms">Symptoms</Label>
+                  <Label htmlFor="symptoms" className="text-sm font-medium">
+                    Symptoms
+                  </Label>
                   <Input
                     id="symptoms"
                     value={formData.symptoms}
@@ -778,12 +811,15 @@ const HealthRecords = () => {
                       setFormData({ ...formData, symptoms: e.target.value })
                     }
                     placeholder="Comma-separated symptoms"
+                    className="h-10 sm:h-11"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="doctorName">Doctor Name</Label>
+                    <Label htmlFor="doctorName" className="text-sm font-medium">
+                      Doctor Name
+                    </Label>
                     <Input
                       id="doctorName"
                       value={formData.doctorName}
@@ -791,11 +827,17 @@ const HealthRecords = () => {
                         setFormData({ ...formData, doctorName: e.target.value })
                       }
                       placeholder="Dr. John Smith"
+                      className="h-10 sm:h-11"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="hospitalName">Hospital/Clinic</Label>
+                    <Label
+                      htmlFor="hospitalName"
+                      className="text-sm font-medium"
+                    >
+                      Hospital/Clinic
+                    </Label>
                     <Input
                       id="hospitalName"
                       value={formData.hospitalName}
@@ -806,12 +848,15 @@ const HealthRecords = () => {
                         })
                       }
                       placeholder="General Hospital"
+                      className="h-10 sm:h-11"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="visitDate">Visit Date</Label>
+                  <Label htmlFor="visitDate" className="text-sm font-medium">
+                    Visit Date
+                  </Label>
                   <Input
                     id="visitDate"
                     type="date"
@@ -819,18 +864,23 @@ const HealthRecords = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, visitDate: e.target.value })
                     }
+                    className="h-10 sm:h-11"
                   />
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4">
+                <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setIsDialogOpen(false)}
+                    className="w-full sm:w-auto text-sm sm:text-base h-10 sm:h-11"
                   >
                     Cancel
                   </Button>
-                  <Button type="submit">
+                  <Button
+                    type="submit"
+                    className="w-full sm:w-auto text-sm sm:text-base h-10 sm:h-11"
+                  >
                     {editingRecordId ? "Update Record" : "Create Record"}
                   </Button>
                 </div>
@@ -848,11 +898,11 @@ const HealthRecords = () => {
             placeholder="Search health records..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 h-10 sm:h-11"
           />
         </div>
         <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-full sm:w-48">
+          <SelectTrigger className="w-full sm:w-48 h-10 sm:h-11">
             <SelectValue placeholder="Filter by type" />
           </SelectTrigger>
           <SelectContent>
@@ -869,7 +919,7 @@ const HealthRecords = () => {
       </div>
 
       {/* Records Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {filteredRecords.map((record) => (
           <Card key={record.id} className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
@@ -884,7 +934,11 @@ const HealthRecords = () => {
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="shrink-0 h-8 w-8 p-0"
+                    >
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -1025,7 +1079,7 @@ const HealthRecords = () => {
               ? "No matching records"
               : "No health records yet"}
           </h3>
-          <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4 max-w-md mx-auto">
+          <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4 max-w-md mx-auto leading-relaxed">
             {searchTerm || filterType !== "all"
               ? "Try adjusting your search or filter criteria"
               : "Start by adding your first health record"}
@@ -1033,7 +1087,7 @@ const HealthRecords = () => {
           {!searchTerm && filterType === "all" && (
             <Button
               onClick={() => setIsDialogOpen(true)}
-              className="text-sm sm:text-base"
+              className="text-sm sm:text-base h-10 sm:h-11 px-6"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Your First Record
