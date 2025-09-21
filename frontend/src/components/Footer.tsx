@@ -117,14 +117,6 @@ const Footer = () => {
                   href="#"
                   className="text-muted-foreground hover:text-govt-blue transition-colors"
                 >
-                  FAQ
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-govt-blue transition-colors"
-                >
                   Contact Us
                 </a>
               </li>
