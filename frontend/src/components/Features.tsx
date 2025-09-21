@@ -23,7 +23,7 @@ const Features = () => {
       icon: Shield,
       title: "Verify Authenticity",
       description:
-        "Advanced verification using namaste tm2 technology ensures your documents are genuine and tamper-proof.",
+        "Advanced verification using NAMASTE and ICD-11 (TM2) technology ensures your documents are genuine and tamper-proof.",
       color: "text-govt-blue",
     },
     {
